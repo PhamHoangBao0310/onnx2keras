@@ -1,7 +1,8 @@
 from tensorflow import keras
 import logging
 from .utils import ensure_tf_type, ensure_numpy_type
-
+import tensorflow as tf
+import numpy as np
 
 def convert_relu(node, params, layers, lambda_func, node_name, keras_name):
     """
@@ -169,6 +170,16 @@ def convert_prelu(node, params, layers, lambda_func, node_name, keras_name):
 
     input_0 = ensure_tf_type(layers[node.input[0]], name="%s_const" % keras_name)
     W = ensure_numpy_type(layers[node.input[1]])
+    logger.debug("Weight shape : {}".format(W.shape))
+
+    w_shape = W.shape
+    W = np.reshape(W, (w_shape[1], w_shape[2], w_shape[3]))
+    
+    shape = input_0.get_shape().as_list() 
+    logger.debug("Input shape : {}".format(shape))
+    # input_0 = tf.reshape(input_0, [shape[1], shape[2], shape[3]])
+    # shape = input_0.get_shape().as_list() 
+    # logger.debug("Input shape now: {}".format(shape)) 
 
     if params['change_ordering']:
         logger.warning('PRelu + change ordering needs to be fixed after TF graph is built.')
@@ -180,4 +191,12 @@ def convert_prelu(node, params, layers, lambda_func, node_name, keras_name):
     shared_axes = shared_axes if len(W.shape) > 1 else None
 
     prelu = keras.layers.PReLU(weights=[W], shared_axes=shared_axes, name=keras_name)
-    layers[node_name] = prelu(input_0)
+
+    output = prelu(input_0)
+    # shape = prelu(input_0).get_shape().as_list() 
+    # logger.debug(shape)
+
+    shape = output.get_shape().as_list() 
+    logger.debug(shape)
+    # output = tf.reshape(output, [shape[1], shape[2], shape[3]])
+    layers[node_name] = output

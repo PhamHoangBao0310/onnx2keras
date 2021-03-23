@@ -31,6 +31,8 @@ def ensure_tf_type(obj, fake_input_layer=None, name=None):
     :return: tf type
     """
     if is_numpy(obj):
+        print("Is numpy")
+        print(obj.shape)
         if obj.dtype == np.int64:
             obj = np.int32(obj)
 

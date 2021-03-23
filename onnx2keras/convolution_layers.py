@@ -1,4 +1,5 @@
 from tensorflow import keras
+import tensorflow as tf
 import logging
 from .utils import ensure_tf_type, ensure_numpy_type
 
@@ -33,6 +34,11 @@ def convert_conv(node, params, layers, lambda_func, node_name, keras_name):
         raise NotImplementedError('Not implemented')
 
     input_0 = ensure_tf_type(layers[node.input[0]], name="%s_const" % keras_name)
+    shape = input_0.get_shape().as_list() 
+    logger.debug(shape)
+    if len(shape) == 5:
+        input_0 = tf.reshape(input_0, [shape[1], shape[2], shape[3], shape[4]])
+        logger.debug(tf.shape(input_0))
     n_groups = params['group'] if 'group' in params else 1
     dilation = params['dilations'][0] if 'dilations' in params else 1
     pads = params['pads'] if 'pads' in params else [0, 0, 0]
